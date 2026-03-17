@@ -656,7 +656,15 @@ export default function ExecutiveView() {
 
   // Get grouped data for comparison view
   const groupedData = useMemo(() => {
-    if (compareBy === 'none' || groupBy === 'none' || compareValues.length === 0) return null;
+    // Only calculate if we have comparison data and a group by dimension selected
+    if (compareBy === 'none' || compareValues.length === 0 || comparisonSets.length === 0) {
+      return { groupValues: [], data: [], groupMetrics: [], hasGrouping: false };
+    }
+    
+    // If no grouping selected, return empty but valid structure
+    if (groupBy === 'none') {
+      return { groupValues: [], data: [], groupMetrics: [], hasGrouping: false };
+    }
     
     // Get unique values for the group dimension
     const getGroupValue = (p: Permit): string => {
@@ -701,7 +709,7 @@ export default function ExecutiveView() {
       return { groupValue: groupVal, comparisons: metricsPerComparison };
     });
 
-    return { groupValues, data, groupMetrics };
+    return { groupValues, data, groupMetrics, hasGrouping: true };
   }, [compareBy, groupBy, comparisonSets, compareValues]);
 
   // Standard metrics (non-compare mode)
@@ -887,7 +895,7 @@ export default function ExecutiveView() {
         </div>
 
         {/* Grouped Breakdown Section - Only shown when Group By is active */}
-        {groupBy !== 'none' && groupedData && groupedData.data.length > 0 && (
+        {groupedData.hasGrouping && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -897,58 +905,64 @@ export default function ExecutiveView() {
               <span className="text-sm text-gray-500 dark:text-gray-400">{groupedData.groupValues.length} groups</span>
             </div>
             
-            {/* Grouped Bar Chart */}
-            <div className="h-80 mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={groupedData.data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" height={70} interval={0} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                    formatter={(value: number, name: string) => {
-                      const idx = parseInt(name.replace('value', '')) - 1;
-                      return [value, compareLabels[idx]];
-                    }}
-                  />
-                  <Legend />
-                  {comparisonSets.map((set, idx) => (
-                    <Bar key={idx} dataKey={`value${idx + 1}`} name={set.label} fill={COMPARE_COLORS[idx].fill} radius={[4, 4, 0, 0]} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Grouped Metrics Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-slate-700">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</th>
-                    {comparisonSets.map((set, idx) => (
-                      <th key={idx} className={`text-center py-3 px-4 font-semibold ${COMPARE_COLORS[idx].text}`}>{set.label}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupedData.groupMetrics.map((row, rowIdx) => (
-                    <tr key={rowIdx} className="border-b border-gray-100 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30">
-                      <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{row.groupValue}</td>
-                      {row.comparisons.map((comp, idx) => (
-                        <td key={idx} className="text-center py-3 px-4">
-                          <div className="flex flex-col items-center">
-                            <span className={`text-lg font-bold ${COMPARE_COLORS[idx].text}`}>{comp.total}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              SLA: {comp.slaCompliance}%
-                            </span>
-                          </div>
-                        </td>
+            {groupedData.data.length > 0 ? (
+              <>
+                {/* Grouped Bar Chart */}
+                <div className="h-80 mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={groupedData.data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" height={70} interval={0} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                        formatter={(value: number, name: string) => {
+                          const idx = parseInt(name.replace('value', '')) - 1;
+                          return [value, compareLabels[idx]];
+                        }}
+                      />
+                      <Legend />
+                      {comparisonSets.map((set, idx) => (
+                        <Bar key={idx} dataKey={`value${idx + 1}`} name={set.label} fill={COMPARE_COLORS[idx].fill} radius={[4, 4, 0, 0]} />
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Grouped Metrics Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-slate-700">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</th>
+                        {comparisonSets.map((set, idx) => (
+                          <th key={idx} className={`text-center py-3 px-4 font-semibold ${COMPARE_COLORS[idx].text}`}>{set.label}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupedData.groupMetrics.map((row, rowIdx) => (
+                        <tr key={rowIdx} className="border-b border-gray-100 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{row.groupValue}</td>
+                          {row.comparisons.map((comp, idx) => (
+                            <td key={idx} className="text-center py-3 px-4">
+                              <div className="flex flex-col items-center">
+                                <span className={`text-lg font-bold ${COMPARE_COLORS[idx].text}`}>{comp.total}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  SLA: {comp.slaCompliance}%
+                                </span>
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">No data available for this grouping</p>
+            )}
           </div>
         )}
 
