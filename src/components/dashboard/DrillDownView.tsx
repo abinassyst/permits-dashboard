@@ -1524,6 +1524,7 @@ function OwnerWorkloadChart({ permits, onDrillDown, mode, onModeChange }: { perm
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
+  const [showTable, setShowTable] = useState(false);
   
   const ownerData = useMemo(() => {
     const groups: Record<string, { total: number; high: number; breached: number }> = {};
@@ -1551,10 +1552,37 @@ function OwnerWorkloadChart({ permits, onDrillDown, mode, onModeChange }: { perm
   const chartTools = [
     { id: 'drill', icon: <ArrowDownRight className="w-3.5 h-3.5" />, tooltip: 'Drill into owner data', action: () => {} },
     { id: 'expand', icon: <Maximize2 className="w-3.5 h-3.5" />, tooltip: 'Focus mode', action: () => setIsFocused(true) },
-    { id: 'table', icon: <Table2 className="w-3.5 h-3.5" />, tooltip: 'Show as table', action: () => {} },
+    { id: 'table', icon: <Table2 className="w-3.5 h-3.5" />, tooltip: 'Show as table', action: () => setShowTable(!showTable) },
   ];
 
-  const chartContent = (
+  const chartContent = showTable ? (
+    <div className="h-[200px] overflow-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-gray-200 dark:border-slate-700">
+            <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Owner</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Total</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">On Track</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Breached</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ownerData.map((item, idx) => (
+            <tr 
+              key={idx} 
+              className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
+              onClick={() => onDrillDown('owner', item.name)}
+            >
+              <td className="py-1.5 px-2 text-gray-700 dark:text-gray-300 truncate">{item.name}</td>
+              <td className="py-1.5 px-2 text-right font-medium text-gray-900 dark:text-white">{item.total}</td>
+              <td className="py-1.5 px-2 text-right text-green-600">{item.onTrack}</td>
+              <td className="py-1.5 px-2 text-right text-red-600">{item.breached}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
     <div className="h-[200px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={ownerData} layout="vertical" margin={{ left: 0, right: 20 }}>
@@ -1736,6 +1764,7 @@ function ZoneHeatmap({ permits, onDrillDown, mode, onModeChange }: { permits: Pe
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
+  const [showTable, setShowTable] = useState(false);
   
   const zoneData = useMemo(() => {
     const groups: Record<string, { total: number; high: number; breached: number }> = {};
@@ -1766,8 +1795,44 @@ function ZoneHeatmap({ permits, onDrillDown, mode, onModeChange }: { permits: Pe
   const chartTools = [
     { id: 'drill', icon: <ArrowDownRight className="w-3.5 h-3.5" />, tooltip: 'Drill into zone', action: () => {} },
     { id: 'expand', icon: <Maximize2 className="w-3.5 h-3.5" />, tooltip: 'Focus mode', action: () => setIsFocused(true) },
-    { id: 'table', icon: <Table2 className="w-3.5 h-3.5" />, tooltip: 'Show as table', action: () => {} },
+    { id: 'table', icon: <Table2 className="w-3.5 h-3.5" />, tooltip: 'Show as table', action: () => setShowTable(!showTable) },
   ];
+
+  const zoneTableView = (
+    <div className="overflow-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-gray-200 dark:border-slate-700">
+            <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Zone</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Total</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">High</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Breached</th>
+            <th className="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Breach %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {zoneData.map((zone, idx) => (
+            <tr 
+              key={idx} 
+              className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
+              onClick={() => onDrillDown('zone', zone.name)}
+            >
+              <td className="py-1.5 px-2 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: zone.color }} />
+                <span className="text-gray-700 dark:text-gray-300">{zone.name}</span>
+              </td>
+              <td className="py-1.5 px-2 text-right font-medium text-gray-900 dark:text-white">{zone.total}</td>
+              <td className="py-1.5 px-2 text-right text-orange-600">{zone.high}</td>
+              <td className="py-1.5 px-2 text-right text-red-600">{zone.breached}</td>
+              <td className="py-1.5 px-2 text-right">
+                <span className={zone.breachRate > 20 ? 'text-red-600' : 'text-green-600'}>{zone.breachRate}%</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 
   const zoneCards = (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -1892,7 +1957,7 @@ function ZoneHeatmap({ permits, onDrillDown, mode, onModeChange }: { permits: Pe
           </div>
         </div>
 
-        {zoneCards}
+        {showTable ? zoneTableView : zoneCards}
       </div>
     </>
   );
@@ -1928,11 +1993,11 @@ function OverviewLevel({ mode: initialMode }: { mode: DrillDownMode }) {
   const getGroupStats = (dimension: DrillDownOption['type']) => {
     const getFieldValue = (permit: Permit) => {
       switch (dimension) {
-        case 'serviceType': return permit.serviceType;
-        case 'status': return permit.currentStatus;
-        case 'owner': return permit.owner;
-        case 'zone': return permit.zone;
-        case 'priority': return permit.priority;
+        case 'serviceType': return permit.serviceType || 'N/A';
+        case 'status': return permit.currentStatus || 'N/A';
+        case 'owner': return permit.owner || 'N/A';
+        case 'zone': return permit.zone || 'N/A';
+        case 'priority': return permit.priority || 'N/A';
         default: return '';
       }
     };
