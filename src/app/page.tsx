@@ -179,7 +179,28 @@ export default function DashboardPage() {
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             
-            <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all">
+            <button
+              onClick={() => {
+                const data = activeTab === 'permits' ? currentPermits : currentInspections;
+                const headers = activeTab === 'permits'
+                  ? ['Request No','Service Type','Location','Status','Priority','Zone','Owner','Created','Updated']
+                  : ['Inspection No','Type','Location','Status','Priority','Zone','Inspector','Scheduled','Completed'];
+                const rows = data.map((item: any) =>
+                  activeTab === 'permits'
+                    ? [item.requestNo, item.serviceType, item.location, item.currentStatus, item.priority, item.zone, item.owner, item.creationDate, item.updatedDate]
+                    : [item.inspectionNo, item.inspectionType, item.location, item.status, item.priority, item.zone, item.inspector, item.scheduledDate, item.completedDate || '']
+                );
+                const csv = [headers.join(','), ...rows.map((r: string[]) => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${activeTab}-export.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all"
+            >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export</span>
             </button>

@@ -8,7 +8,7 @@ import { cn, formatDate, getStatusColor, getPriorityColor, truncateText, exportT
 
 export default function PermitsTable() {
   const { getFilteredByDrillDown, openPermitModal } = useDashboard();
-  const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
+  const [sortState, setSortState] = useState<SortState>({ column: 'creationDate', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 

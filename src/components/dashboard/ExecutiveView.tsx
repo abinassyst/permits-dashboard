@@ -31,6 +31,18 @@ const COMPARE_COLORS = [
   { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-600 dark:text-purple-400', fill: '#8B5CF6' },
 ];
 
+const GRID_COLS: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+};
+
+const MD_GRID_COLS: Record<number, string> = {
+  1: 'md:grid-cols-1',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+};
+
 // Helper functions
 function parseRemainingTimeToHours(remainingTime: string): number {
   const isNegative = remainingTime.startsWith('-');
@@ -101,8 +113,8 @@ function DrillDownModal({ drillDown, onClose, onViewPermit }: {
   onViewPermit: (permit: Permit) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<'requestNo' | 'priority' | 'status' | 'remainingTime'>('remainingTime');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [sortField, setSortField] = useState<'requestNo' | 'priority' | 'status' | 'remainingTime' | 'creationDate'>('creationDate');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   
   if (!drillDown) return null;
   
@@ -126,6 +138,9 @@ function DrillDownModal({ drillDown, onClose, onViewPermit }: {
         case 'status': cmp = a.status.localeCompare(b.status); break;
         case 'remainingTime': 
           cmp = parseRemainingTimeToHours(a.remainingTime) - parseRemainingTimeToHours(b.remainingTime);
+          break;
+        case 'creationDate':
+          cmp = new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime();
           break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
@@ -404,12 +419,20 @@ function CompareSelector({
 }
 
 // Comparison KPI Card
+const COLOR_MAP: Record<string, { bg: string; border: string; text: string }> = {
+  blue: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-600 dark:text-blue-400' },
+  emerald: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-600 dark:text-emerald-400' },
+  purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-600 dark:text-purple-400' },
+};
+
 function CompareKPICard({ title, value1, value2, label1, label2, icon, color1 = 'blue', color2 = 'emerald' }: {
   title: string; value1: string | number; value2: string | number; label1: string; label2: string; icon: React.ReactNode; color1?: string; color2?: string;
 }) {
   const v1 = typeof value1 === 'string' ? parseFloat(value1) : value1;
   const v2 = typeof value2 === 'string' ? parseFloat(value2) : value2;
   const diff = v1 - v2;
+  const c1 = COLOR_MAP[color1 || 'blue'] || COLOR_MAP.blue;
+  const c2 = COLOR_MAP[color2 || 'emerald'] || COLOR_MAP.emerald;
   
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-5 hover:shadow-lg transition-all">
@@ -419,13 +442,13 @@ function CompareKPICard({ title, value1, value2, label1, label2, icon, color1 = 
       </div>
       
       <div className="grid grid-cols-2 gap-4">
-        <div className={`p-3 rounded-xl bg-${color1}-50 dark:bg-${color1}-900/20 border border-${color1}-200 dark:border-${color1}-800`}>
+        <div className={`p-3 rounded-xl ${c1.bg} border ${c1.border}`}>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">{label1}</p>
-          <p className={`text-2xl font-bold text-${color1}-600 dark:text-${color1}-400`}>{value1}</p>
+          <p className={`text-2xl font-bold ${c1.text}`}>{value1}</p>
         </div>
-        <div className={`p-3 rounded-xl bg-${color2}-50 dark:bg-${color2}-900/20 border border-${color2}-200 dark:border-${color2}-800`}>
+        <div className={`p-3 rounded-xl ${c2.bg} border ${c2.border}`}>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">{label2}</p>
-          <p className={`text-2xl font-bold text-${color2}-600 dark:text-${color2}-400`}>{value2}</p>
+          <p className={`text-2xl font-bold ${c2.text}`}>{value2}</p>
         </div>
       </div>
       
@@ -828,7 +851,7 @@ export default function ExecutiveView() {
               <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700"><FileText className="w-5 h-5 text-gray-600" /></div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Total Permits</h3>
             </div>
-            <div className={`grid grid-cols-${comparisonSets.length} gap-2`}>
+            <div className={`grid ${GRID_COLS[comparisonSets.length] || 'grid-cols-1'} gap-2`}>
               {comparisonSets.map((set, idx) => (
                 <div key={idx} className={`p-3 rounded-xl ${COMPARE_COLORS[idx].bg} border ${COMPARE_COLORS[idx].border}`}>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">{set.label}</p>
@@ -844,7 +867,7 @@ export default function ExecutiveView() {
               <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700"><Shield className="w-5 h-5 text-gray-600" /></div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">SLA Compliance</h3>
             </div>
-            <div className={`grid grid-cols-${comparisonSets.length} gap-2`}>
+            <div className={`grid ${GRID_COLS[comparisonSets.length] || 'grid-cols-1'} gap-2`}>
               {comparisonSets.map((set, idx) => (
                 <div key={idx} className={`p-3 rounded-xl ${COMPARE_COLORS[idx].bg} border ${COMPARE_COLORS[idx].border}`}>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">{set.label}</p>
@@ -860,7 +883,7 @@ export default function ExecutiveView() {
               <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700"><CheckCircle2 className="w-5 h-5 text-gray-600" /></div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Completion Rate</h3>
             </div>
-            <div className={`grid grid-cols-${comparisonSets.length} gap-2`}>
+            <div className={`grid ${GRID_COLS[comparisonSets.length] || 'grid-cols-1'} gap-2`}>
               {comparisonSets.map((set, idx) => (
                 <div key={idx} className={`p-3 rounded-xl ${COMPARE_COLORS[idx].bg} border ${COMPARE_COLORS[idx].border}`}>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">{set.label}</p>
@@ -876,7 +899,7 @@ export default function ExecutiveView() {
               <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700"><Timer className="w-5 h-5 text-gray-600" /></div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Avg Processing</h3>
             </div>
-            <div className={`grid grid-cols-${comparisonSets.length} gap-2`}>
+            <div className={`grid ${GRID_COLS[comparisonSets.length] || 'grid-cols-1'} gap-2`}>
               {comparisonSets.map((set, idx) => (
                 <div key={idx} className={`p-3 rounded-xl ${COMPARE_COLORS[idx].bg} border ${COMPARE_COLORS[idx].border}`}>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">{set.label}</p>
@@ -967,7 +990,7 @@ export default function ExecutiveView() {
         )}
 
         {/* Detailed Metrics - Dynamic grid based on number of comparisons */}
-        <div className={`grid grid-cols-1 md:grid-cols-${comparisonSets.length} gap-6`}>
+        <div className={`grid grid-cols-1 ${MD_GRID_COLS[comparisonSets.length] || 'md:grid-cols-1'} gap-6`}>
           {comparisonSets.map((set, idx) => (
             <div key={idx} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-5">
               <h3 className={`text-lg font-semibold ${COMPARE_COLORS[idx].text} mb-4 flex items-center gap-2`}>

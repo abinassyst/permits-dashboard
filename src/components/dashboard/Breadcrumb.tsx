@@ -2,6 +2,7 @@
 
 import { ChevronRight, Home, BarChart3, Users, MapPin, AlertTriangle, FileText } from 'lucide-react';
 import { useDashboard } from '@/context/DashboardContext';
+import { DrillDownState } from '@/types';
 import { cn } from '@/lib/utils';
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -29,7 +30,7 @@ function formatBreadcrumbLabel(item: { label: string; type: string | null; value
 }
 
 export default function Breadcrumb() {
-  const { drillDown, goBackDrillDown, resetDrillDown } = useDashboard();
+  const { drillDown, goBackDrillDown, resetDrillDown, navigateDrillDown } = useDashboard();
 
   if (drillDown.breadcrumb.length <= 1) {
     return null;

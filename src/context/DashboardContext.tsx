@@ -44,7 +44,9 @@ const initialDrillDown: DrillDownState = {
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [permits] = useState<Permit[]>(permitsData.permits);
+  const [permits] = useState<Permit[]>(
+    [...permitsData.permits].sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime())
+  );
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [drillDown, setDrillDown] = useState<DrillDownState>(initialDrillDown);
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(null);
