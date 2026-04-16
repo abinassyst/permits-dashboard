@@ -155,14 +155,14 @@ export default function ServiceTypeChart() {
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           ) : (
-            <BarChart data={data} layout="vertical" margin={{ left: 20, right: 20 }}>
+            <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis type="number" tick={{ fontSize: 12 }} />
               <YAxis 
                 type="category" 
                 dataKey="shortName" 
-                tick={{ fontSize: 11 }} 
-                width={120}
+                tick={{ fontSize: 10 }} 
+                width={110}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar 

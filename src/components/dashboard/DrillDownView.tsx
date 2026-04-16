@@ -544,10 +544,10 @@ function DynamicChart({
     case 'horizontalBar':
       return (
         <ResponsiveContainer width="100%" height={Math.max(height, chartData.length * 25)}>
-          <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 10, left: 60, bottom: 5 }}>
+          <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis type="number" tick={{ fontSize: 9 }} />
-            <YAxis dataKey="shortName" type="category" width={55} tick={{ fontSize: 9 }} />
+            <YAxis dataKey="shortName" type="category" width={110} tick={{ fontSize: 9 }} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="count" onClick={handleClick} className="cursor-pointer" radius={[0, 4, 4, 0]}>
               {chartData.map((entry, index) => (

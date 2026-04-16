@@ -97,13 +97,16 @@ export function truncateText(text: string, maxLength: number): string {
 
 export function getShortServiceType(serviceType: string): string {
   const shortNames: Record<string, string> = {
-    'Request for Sewerage Connection Point Details': 'Connection Point Details',
+    'Request for Sewerage Connection Point Details': 'Connection Point',
     'Sewerage Site Inspection': 'Site Inspection',
-    'Approve the Creation of a New Sewerage Connection Point': 'New Connection Point',
-    'Obtain Copy of Existing Sewerage Setouts': 'Sewerage Setouts Copy',
-    'Issue Approval to Modify the Sewerage Manholes Level': 'Manholes Modification',
-    'Approve Temporary Connection to Sewerage Line': 'Temporary Connection',
-    'Request for External Sewerage Device Approval': 'External Device Approval',
+    'Approve the Creation of a New Sewerage Connection Point': 'New Connection',
+    'Obtain Copy of Existing Sewerage Setouts': 'Setouts Copy',
+    'Issue Approval to Modify the Sewerage Manholes Level': 'Manhole Modify',
+    'Issue Approval to Modify the Sewerage Manhole Level': 'Manhole Modify',
+    'Approve Temporary Connection to Sewerage Line': 'Temp Connection',
+    'Request for External Sewerage Device Approval': 'Ext Device',
+    'Request for External Sewerage Route Approval': 'Ext Route',
+    'Obtain Cost of Diverting Sewerage Services': 'Diversion Cost',
   };
   return shortNames[serviceType] || serviceType;
 }
